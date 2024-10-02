@@ -94,10 +94,10 @@ export OD_C=/usr/bin/od
 * Wed Jan 27 2021 Fedora Release Engineering <releng@fedoraproject.org> - 1.7.4.1-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
 
-* Mon Jan 11 10:35:54 EST 2021 Paul Wouters <pwouters@redhat.com> - 1.7.4.1-1
+* Mon Jan 11 2021 Paul Wouters <pwouters@redhat.com> - 1.7.4.1-1
 - Resolves: rhbz#1914653 socat-1.7.4.1 is available
 
-* Mon Jan  4 09:34:27 EST 2021 Paul Wouters <pwouters@redhat.com> - 1.7.4.0-1
+* Mon Jan  4 2021 Paul Wouters <pwouters@redhat.com> - 1.7.4.0-1
 - Resolves: rhbz#1912161 socat-1.7.4.0 is available
 
 * Wed Jul 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.7.3.4-3
