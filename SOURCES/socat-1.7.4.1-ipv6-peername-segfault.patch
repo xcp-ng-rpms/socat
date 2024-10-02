@@ -1,0 +1,102 @@
+commit 1477334905be18c08bd6dc77be5a62e36b573de4
+Author: Gerhard Rieger <gerhard@dest-unreach.org>
+Date:   Tue Oct 26 19:26:18 2021 +0200
+
+    OpenSSL server could be crashed by client cert with IPv6 address in SubjectAltname
+
+diff --git a/test.sh b/test.sh
+index 6ca21f3..c0e98a3 100755
+--- a/test.sh
++++ b/test.sh
+@@ -15040,6 +15040,60 @@ PORT=$((PORT+1))
+ N=$((N+1))
+ 
+ 
++# Bug fix, OpenSSL server could be crashed by client cert with IPv6 address in SubjectAltname
++NAME=OPENSSL_CLIENT_IP6_CN
++case "$TESTS" in
++*%$N%*|*%functions%*|*%bugs%*|*%openssl%*|*%ip6%*|*%socket%*|*%$NAME%*)
++TEST="$NAME: Test if OpenSSL server may be crashed by client cert with IPv6 address"
++# Socat 1.7.4.1 had a bug that caused OpenSSL server to crash with SIGSEGV when
++# it checked a client certificate containing IPv6 address in SubjectAltName and
++# no openssl-commonname option was given
++if ! eval $NUMCOND; then :;
++elif ! testfeats openssl >/dev/null; then
++    $PRINTF "test $F_n $TEST... ${YELLOW}OPENSSL not available${NORMAL}\n" $N
++    numCANT=$((numCANT+1))
++    listCANT="$listCANT $N"
++elif ! testfeats tcp ip4 >/dev/null || ! runsip4 >/dev/null; then
++    $PRINTF "test $F_n $TEST... ${YELLOW}TCP/IPv4 not available${NORMAL}\n" $N
++    numCANT=$((numCANT+1))
++    listCANT="$listCANT $N"
++else
++gentestcert testsrv
++gentestaltcert testalt
++tf="$td/test$N.stdout"
++te="$td/test$N.stderr"
++tdiff="$td/test$N.diff"
++da="test$N $(date) $RANDOM"
++CMD0="$TRACE $SOCAT $opts -u OPENSSL-LISTEN:$PORT,reuseaddr,cert=./testsrv.pem,cafile=./testalt.crt -"
++CMD1="$TRACE $SOCAT $opts -u - OPENSSL-CONNECT:localhost:$PORT,cafile=testsrv.crt,cert=testalt.pem,verify=0"
++printf "test $F_n $TEST... " $N
++$CMD0 >/dev/null >"${tf}0" 2>"${te}0" &
++pid0=$!
++waittcp4port $PORT 1
++echo "$da" |$CMD1 2>"${te}1"
++rc1=$?
++kill $pid0 2>/dev/null; wait
++if [ $rc1 -eq 0 ] && echo "$da" |diff - "${tf}0" >$tdiff; then
++    $PRINTF "$OK\n"
++    numOK=$((numOK+1))
++else
++    $PRINTF "$FAILED\n"
++    echo "$CMD0 &" >&2
++    cat "${te}0" >&2
++    echo "$CMD1" >&2
++    cat "${te}1" >&2
++    numFAIL=$((numFAIL+1))
++    listFAIL="$listFAIL $N"
++fi
++fi # NUMCOND
++ ;;
++esac
++PORT=$((PORT+1))
++N=$((N+1))
++
++
++# end of common tests
++
+ ##################################################################################
+ #=================================================================================
+ # here come tests that might affect your systems integrity. Put normal tests
+diff --git a/xio-openssl.c b/xio-openssl.c
+index 94fe44e..dc47798 100644
+--- a/xio-openssl.c
++++ b/xio-openssl.c
+@@ -1775,15 +1775,17 @@ static int openssl_handle_peer_certificate(struct single *xfd,
+ #if WITH_IP6
+ 			case 16: /* IPv6 */
+ 			   inet_ntop(AF_INET6, data, aBuffer, sizeof(aBuffer));
+-			   xioip6_pton(peername, &ip6bin);
+-			   if (memcmp(data, &ip6bin, sizeof(ip6bin)) == 0) {
+-			      Debug2("subjectAltName \"%s\" matches peername \"%s\"",
+-				    aBuffer, peername);
+-			      ok = 1;
+-			   } else {
+-			      Info2("subjectAltName \"%s\" does not match peername \"%s\"",
+-				    aBuffer, peername);
+-			   }			      
++			   if (peername != NULL) {
++			      xioip6_pton(peername, &ip6bin);
++			      if (memcmp(data, &ip6bin, sizeof(ip6bin)) == 0) {
++			         Debug2("subjectAltName \"%s\" matches peername \"%s\"",
++					aBuffer, peername);
++			         ok = 1;
++			      } else {
++			         Info2("subjectAltName \"%s\" does not match peername \"%s\"",
++				       aBuffer, peername);
++			      }
++			   }
+ 			   break;
+ #endif
+ 			}
