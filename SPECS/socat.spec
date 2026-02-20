@@ -3,7 +3,7 @@
 Summary: Bidirectional data relay between two data channels ('netcat++')
 Name: socat
 Version: 1.7.4.1
-Release: 6.1%{?dist}
+Release: 6.1~XCPNG2710.2%{?dist}
 License: GPLv2
 Url:  http://www.dest-unreach.org/socat/
 Source: http://www.dest-unreach.org/socat/download/%{name}-%{version}.tar.gz
