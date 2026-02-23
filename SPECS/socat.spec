@@ -3,7 +3,7 @@
 Summary: Bidirectional data relay between two data channels ('netcat++')
 Name: socat
 Version: 1.7.4.1
-Release: 6%{?dist}
+Release: 6.1%{?dist}
 License: GPLv2
 Url:  http://www.dest-unreach.org/socat/
 Source: http://www.dest-unreach.org/socat/download/%{name}-%{version}.tar.gz
@@ -29,11 +29,9 @@ line editor (readline), a program, or a combination of two of these.
 
 
 %prep
-%setup -q
+%autosetup
 iconv -f iso8859-1 -t utf-8 CHANGES > CHANGES.utf8
 mv CHANGES.utf8 CHANGES
-%patch1 -p1
-%patch2 -p1
 
 %build
 %configure  \
@@ -77,6 +75,10 @@ export OD_C=/usr/bin/od
 %doc %{_mandir}/man1/*
 
 %changelog
+* Tue Feb 10 2026 Philippe Coval <philippe.coval@vates.tech> - 1.7.4.1-6.1
+- Replace obsolete patch macro with autoconfig macro
+- Rebuild for openssl-3
+
 * Mon Apr 15 2024 Martin Osvald <mosvald@redhat.com> - 1.7.4.1-6
 - Fix IPv6 peername segfault (RHEL-32438)
 
